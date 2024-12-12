@@ -18,6 +18,7 @@ package org.axonframework.springboot.autoconfig;
 
 import com.thoughtworks.xstream.XStream;
 import org.axonframework.commandhandling.CommandHandler;
+import org.axonframework.commandhandling.CommandMessage;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.config.Configuration;
 import org.axonframework.config.Configurer;
@@ -26,8 +27,15 @@ import org.axonframework.config.EventProcessingModule;
 import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.EventHandler;
 import org.axonframework.eventhandling.gateway.EventGateway;
+import org.axonframework.messaging.InterceptorChain;
+import org.axonframework.messaging.Message;
+import org.axonframework.messaging.MessageHandlerInterceptor;
 import org.axonframework.messaging.annotation.HandlerEnhancerDefinition;
 import org.axonframework.messaging.annotation.MessageHandlingMember;
+import org.axonframework.messaging.unitofwork.UnitOfWork;
+import org.axonframework.queryhandling.QueryGateway;
+import org.axonframework.queryhandling.QueryHandler;
+import org.axonframework.queryhandling.QueryMessage;
 import org.axonframework.serialization.upcasting.event.EventUpcasterChain;
 import org.axonframework.serialization.upcasting.event.IntermediateEventRepresentation;
 import org.axonframework.spring.config.MessageHandlerLookup;
@@ -45,6 +53,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.core.annotation.Order;
 import org.springframework.jmx.support.RegistrationPolicy;
+import org.springframework.stereotype.Component;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.ArrayList;
@@ -220,6 +229,36 @@ class InfraConfigurationTest {
                               });
     }
 
+    @Test
+    public void commandHandlerInterceptorsAreRegistered() {
+        testApplicationContext.withUserConfiguration(MessageInterceptorContext.class).run(context -> {
+            assertThat(context).hasSingleBean(MessageInterceptorContext.MyCommandHandlerInterceptor.class);
+            assertThat(context).hasSingleBean(MessageInterceptorContext.MyQueryHandlerInterceptor.class);
+
+            MessageInterceptorContext.MyCommandHandlerInterceptor commandInterceptor = context.getBean(MessageInterceptorContext.MyCommandHandlerInterceptor.class);
+            MessageInterceptorContext.MyQueryHandlerInterceptor queryInterceptor = context.getBean(MessageInterceptorContext.MyQueryHandlerInterceptor.class);
+
+            context.getBean("commandGateway", CommandGateway.class).send(new Object());
+            assertThat(commandInterceptor.intercepted).hasSize(1);
+            assertThat(queryInterceptor.intercepted).hasSize(0);
+        });
+    }
+
+    @Test
+    public void queryHandlerInterceptorsAreRegistered() {
+        testApplicationContext.withUserConfiguration(MessageInterceptorContext.class).run(context -> {
+            assertThat(context).hasSingleBean(MessageInterceptorContext.MyCommandHandlerInterceptor.class);
+            assertThat(context).hasSingleBean(MessageInterceptorContext.MyQueryHandlerInterceptor.class);
+
+            MessageInterceptorContext.MyCommandHandlerInterceptor commandInterceptor = context.getBean(MessageInterceptorContext.MyCommandHandlerInterceptor.class);
+            MessageInterceptorContext.MyQueryHandlerInterceptor queryInterceptor = context.getBean(MessageInterceptorContext.MyQueryHandlerInterceptor.class);
+
+            String result = context.getBean("queryGateway", QueryGateway.class).query("foo", String.class).get();
+            assertThat(commandInterceptor.intercepted).hasSize(0);
+            assertThat(queryInterceptor.intercepted).hasSize(1);
+        });
+    }
+
 
     @ContextConfiguration
     @EnableAutoConfiguration
@@ -340,6 +379,60 @@ class InfraConfigurationTest {
                 handlingOutcome.add("late-[" + event + "]");
                 invocation.countDown();
             }
+        }
+    }
+
+    static class MessageInterceptorContext {
+        @Bean
+        public MyCommandHandlerInterceptor myCommandHandlerInterceptor() {
+            return new MyCommandHandlerInterceptor();
+        }
+
+        @Bean
+        public MyQueryHandlerInterceptor myQueryHandlerInterceptor() {
+            return new MyQueryHandlerInterceptor();
+        }
+
+        @Bean
+        public CommandHandlingComponent commandHandlingComponent() {
+            return new CommandHandlingComponent();
+        }
+
+        @Bean
+        public QueryHandlingComponent queryHandlingComponent() {
+            return new QueryHandlingComponent();
+        }
+
+        public static class MyCommandHandlerInterceptor implements MessageHandlerInterceptor<CommandMessage<?>> {
+            public List<Message<?>> intercepted = new ArrayList<>();
+
+            @Override
+            public Object handle(UnitOfWork<? extends CommandMessage<?>> unitOfWork, InterceptorChain interceptorChain) throws Exception {
+                intercepted.add(unitOfWork.getMessage());
+                return interceptorChain.proceed();
+            }
+        }
+
+        public static class MyQueryHandlerInterceptor implements MessageHandlerInterceptor<QueryMessage<?, ?>> {
+            public List<Message<?>> intercepted = new ArrayList<>();
+
+            @Override
+            public Object handle(UnitOfWork<? extends QueryMessage<?, ?>> unitOfWork, InterceptorChain interceptorChain) throws Exception {
+                intercepted.add(unitOfWork.getMessage());
+                return interceptorChain.proceed();
+            }
+        }
+
+        public static class CommandHandlingComponent {
+
+            @CommandHandler
+            public void handle(Object command) { }
+        }
+
+        public static class QueryHandlingComponent {
+
+            @QueryHandler
+            public String handle(String query) { return "bar"; }
         }
     }
 
