@@ -80,9 +80,9 @@
         <hsqldb.version>2.7.4</hsqldb.version><!-- Don't upgrade due to JDK8 -->
         <hsqldb.with11.version>2.7.4</hsqldb.with11.version><!-- Don't upgrade due to JDK8 -->
         <hibernate-core.version>5.6.15.Final</hibernate-core.version>
-        <hibernate-core.6.version>6.6.15.Final</hibernate-core.6.version>
+        <hibernate-core.6.version>7.0.0.Final</hibernate-core.6.version>
         <mysql-connector-java.version>9.3.0</mysql-connector-java.version>
-        <postgresql.version>42.7.5</postgresql.version>
+        <postgresql.version>42.7.6</postgresql.version>
         <!-- Jakarta -->
         <jakarta.annotation.version>2.1.1</jakarta.annotation.version><!-- Don't upgrade due to JDK8 -->
         <jakarta.el.version>4.0.0</jakarta.el.version><!-- Don't upgrade due to JDK11 -->
@@ -104,7 +104,7 @@
         <log4j.version>2.24.3</log4j.version>
         <slf4j.version>2.0.17</slf4j.version>
         <!-- Metrics -->
-        <dropwizard.metrics.version>4.2.30</dropwizard.metrics.version>
+        <dropwizard.metrics.version>4.2.32</dropwizard.metrics.version>
         <micrometer.version>1.15.0</micrometer.version>
         <!-- Other -->
         <byte-buddy.version>1.17.5</byte-buddy.version>
@@ -134,18 +134,18 @@
         <awaitility.version>4.3.0</awaitility.version>
         <hamcrest.version>3.0</hamcrest.version>
         <junit4.version>4.13.2</junit4.version>
-        <junit.jupiter.version>5.12.2</junit.jupiter.version>
+        <junit.jupiter.version>5.13.1</junit.jupiter.version>
         <mockito.version>4.11.0</mockito.version>
         <testcontainers.version>1.19.3</testcontainers.version>
         <!-- Validation -->
         <hibernate-validator.version>6.2.5.Final</hibernate-validator.version>
-        <hibernate-validator.8.version>8.0.2.Final</hibernate-validator.8.version>
+        <hibernate-validator.8.version>9.0.0.Final</hibernate-validator.8.version>
         <!-- Build / Plugin -->
         <eclipse.transformer-maven-plugin.version>1.0.0</eclipse.transformer-maven-plugin.version>
         <felix.maven-bundle-plugin.version>5.1.9</felix.maven-bundle-plugin.version>
         <jacoco-maven.version>0.8.13</jacoco-maven.version>
         <maven-assembly.version>3.7.1</maven-assembly.version>
-        <maven-clean.version>3.4.1</maven-clean.version>
+        <maven-clean.version>3.5.0</maven-clean.version>
         <maven-compiler.version>3.14.0</maven-compiler.version>
         <maven-deploy.version>3.1.4</maven-deploy.version>
         <maven-enforcer.version>3.5.0</maven-enforcer.version>
